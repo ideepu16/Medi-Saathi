@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Premium Font & Variables */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+    
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.3);
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    }
+
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f2f5; }
+
+    .view-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+
+    /* Floating Stats Bar */
+    .stats-bar {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px; margin-bottom: 30px;
+    }
+
+    .mini-card {
+        background: var(--glass-bg); backdrop-filter: blur(10px);
+        padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;
+    }
+
+    /* Professional Table Wrapper */
+    .glass-card {
+        background: var(--glass-bg); backdrop-filter: blur(15px);
+        border-radius: 24px; border: 1px solid var(--glass-border);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden;
+    }
+
+    .table-header-action {
+        padding: 25px; display: flex; justify-content: space-between; align-items: center;
+        background: rgba(255,255,255,0.4); border-bottom: 1px solid #eee;
+    }
+
+    .search-box {
+        background: white; border: 1px solid #e2e8f0; padding: 10px 20px;
+        border-radius: 12px; width: 300px; outline: none; transition: 0.3s;
+    }
+
+    .search-box:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+
+    /* Table Improvements */
+    .custom-table { width: 100%; border-collapse: collapse; }
+    .custom-table th { padding: 20px; text-align: left; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+    .custom-table td { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.03); }
+    .custom-table tr:hover { background: rgba(99, 102, 241, 0.02); }
+
+    /* Button Styling */
+    .btn-action {
+        padding: 8px 12px; border-radius: 10px; font-weight: 600; font-size: 0.85rem;
+        border: none; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px;
+        text-decoration: none; /* To remove underline from links */
+    }
+
+    .btn-edit { background: #e0e7ff; color: #4338ca; }
+    .btn-edit:hover { background: #4338ca; color: white; }
+    .btn-delete { background: #fee2e2; color: #b91c1c; }
+    .btn-delete:hover { background: #b91c1c; color: white; }
+
+    .status-pill {
+        padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+    }
+    .status-taken { background: #dcfce7; color: #166534; }
+</style>
+
+<div class="view-container">
+    <div class="stats-bar">
+        <div class="mini-card">
+            <span style="font-size: 0.8rem; color: #64748b;">Total Tracked</span>
+            <h3 style="margin: 5px 0 0; font-size: 1.8rem;">{{ medicines|length }}</h3>
+        </div>
+        <div class="mini-card">
+            <span style="font-size: 0.8rem; color: #64748b;">Active Today</span>
+            <h3 style="margin: 5px 0 0; font-size: 1.8rem; color: #6366f1;">{{ medicines|length }}</h3>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="table-header-action">
+            <h3 style="margin:0;">📋 Your Medicine Inventory</h3>
+            <input type="text" id="medSearch" class="search-box" placeholder="Search medicine name...">
+        </div>
+
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Medicine Details</th>
+                    <th>Schedule</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Quick Actions</th>
+                </tr>
+            </thead>
+            <tbody id="medTableBody">
+                {% for med in medicines %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 800; color: #1e293b;">{{ med.name }}</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">Dosage: {{ med.dosage }}</div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span style="font-size: 1.1rem;">⏰</span>
+                            <span style="font-weight: 600;">{{ med.time }}</span>
+                        </div>
+                    </td>
+                    <td style="font-size: 0.85rem; color: #475569;">
+                        {{ med.start_date }} <br> 
+                        <span style="color: #94a3b8;">to</span> {{ med.end_date }}
+                    </td>
+                    <td>
+                        {% if med.taken %}
+                            <span class="status-pill status-taken">● TAKEN</span>
+                        {% else %}
+                            <span class="status-pill" style="background: #fef3c7; color: #b45309;">● PENDING</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{{ url_for('edit_medicine', id=med.id) }}" class="btn-action btn-edit" style="text-decoration: none;">
+                            ✏️ Edit
+                            </a>
+                            
+                            <a href="javascript:void(0)" 
+                               class="btn-action btn-delete" 
+                               style="text-decoration: none;"
+                               onclick="openDeleteModal('{{ url_for('delete_medicine', id=med.id) }}')">
+                            🗑️ Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(8px); font-family: 'Plus Jakarta Sans', sans-serif;">
+    <div style="background: #ffffff; padding: 35px; border-radius: 24px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 400px; width: 90%; border: 1px solid rgba(255,255,255,0.3);">
+        
+        <div style="background: #fee2e2; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <span style="font-size: 30px;">⚠️</span>
+        </div>
+        
+        <h2 style="color: #1e293b; font-size: 1.5rem; margin-bottom: 10px; font-weight: 700;">Are you sure?</h2>
+        <p style="color: #64748b; font-size: 1rem; margin-bottom: 30px; line-height: 1.5;">This action will permanently delete this medicine record. This cannot be undone.</p>
+        
+        <div style="display: flex; gap: 12px;">
+            <button onclick="closeDeleteModal()" style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #475569; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                Cancel
+            </button>
+            <a id="confirmDeleteBtn" href="#" style="flex: 1; padding: 12px; border-radius: 12px; border: none; background: #ef4444; color: white; font-weight: 600; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);">
+                Delete Now
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Live Search Functionality
+    document.getElementById('medSearch').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#medTableBody tr');
+        
+        rows.forEach(row => {
+            let medName = row.querySelector('td:first-child div:first-child').textContent.toLowerCase();
+            row.style.display = medName.includes(value) ? '' : 'none';
+        });
+    });
+
+    // --- CUSTOM MODAL LOGIC ---
+    let deleteUrl = "";
+
+    function openDeleteModal(url) {
+        deleteUrl = url;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        let modal = document.getElementById('deleteModal');
+        if (event.target == modal) {
+            closeDeleteModal();
+        }
+    }
+
+    // Redirect to URL when "Delete Now" button is pressed
+    document.getElementById('confirmDeleteBtn').onclick = function(e) {
+        e.preventDefault(); // Stop default behavior
+        window.location.href = deleteUrl; // Redirect to backend route
+    };
+</script>
+{% endblock %}

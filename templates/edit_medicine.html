@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Medicine - Medicine Reminder{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>✏️ Edit Medicine</h2>
+    
+    <form method="POST" action="{{ url_for('edit_medicine', id=medicine.id) }}" class="medicine-form">
+        <div class="form-group">
+            <label for="name">Medicine Name</label>
+            <input type="text" id="name" name="name" value="{{ medicine.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="dosage">Dosage</label>
+            <input type="text" id="dosage" name="dosage" value="{{ medicine.dosage }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="time">Time</label>
+            <input type="time" id="time" name="time" value="{{ medicine.time }}" required>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="start_date">Start Date</label>
+                <input type="date" id="start_date" name="start_date" value="{{ medicine.start_date }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="end_date">End Date</label>
+                <input type="date" id="end_date" name="end_date" value="{{ medicine.end_date }}" required>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Update Medicine</button>
+            <a href="{{ url_for('view_medicines') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    .dashboard {
+        font-family: 'Inter', sans-serif;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-top: 20px;
+    }
+
+    /* Fixed Table Spacing */
+    .premium-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    .premium-table th {
+        padding: 16px 20px;
+        text-align: left;
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .premium-table td {
+        padding: 16px 20px;
+        text-align: left;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .premium-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+    
+    /* Fixed Badges */
+    .badge-success {
+        background-color: #dcfce7 !important;
+        color: #166534 !important;
+        padding: 6px 14px !important;
+        border-radius: 20px !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        display: inline-block;
+    }
+    .badge-pending {
+        background-color: #fef3c7 !important;
+        color: #b45309 !important;
+        padding: 6px 14px !important;
+        border-radius: 20px !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        display: inline-block;
+    }
+
+    @keyframes pulseIcon_glow {
+        0% { transform: scale(1); opacity: 1; }
+        70% { transform: scale(1.5); opacity: 0; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    /* Start Button Hover Effect */
+    #startAppBtn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4) !important;
+    }
+</style>
+
+<div id="startOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Inter', sans-serif;">
+    
+    <div style="background: rgba(255, 255, 255, 0.95); padding: 50px 40px; border-radius: 32px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255,255,255,0.5); max-width: 450px; width: 90%; backdrop-filter: blur(10px); transform: translateY(-20px);">
+        
+        <div style="width: 100px; height: 100px; margin: -100px auto 25px auto; background: white; border-radius: 50%; padding: 10px; box-shadow: 0 15px 35px rgba(99, 102, 241, 0.2); display: flex; justify-content: center; align-items: center; border: 4px solid #ffffff;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Medi Saathi Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;">
+        </div>
+        
+        <h1 style="margin-bottom: 10px; font-weight: 800; font-size: 2.2rem; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            MEDI SAATHI
+        </h1>
+        
+        <p style="color: #64748b; margin-bottom: 35px; font-size: 1.05rem; font-weight: 500;">Your Smart Medicine Companion</p>
+        
+        <button id="startAppBtn" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; font-size: 1.1rem; padding: 16px 35px; border-radius: 16px; font-weight: 700; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3); transition: all 0.3s ease; width: 100%;">
+            🚀 Get Started Now
+        </button>
+    </div>
+</div>
+
+<div id="reminderModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(8px); font-family: 'Inter', sans-serif;">
+    <div style="background: #ffffff; padding: 40px 30px; border-radius: 24px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 400px; width: 90%;">
+        
+        <div style="position: relative; width: 70px; height: 70px; margin: 0 auto 20px;">
+            <div style="position: absolute; width: 70px; height: 70px; background: rgba(253, 203, 110, 0.3); border-radius: 50%; animation: pulseIcon_glow 2s infinite;"></div>
+            <div style="position: absolute; top: 5px; left: 5px; width: 60px; height: 60px; background: #ffeaa7; border-radius: 50%; box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4); display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 30px; line-height: 1;">🔔</span>
+            </div>
+        </div>
+        
+        <h2 style="color: #475569; font-size: 1.2rem; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Medicine Due</h2>
+        <h1 id="modalMedName" style="color: #ef4444; font-size: 2.2rem; margin: 10px 0; text-transform: uppercase; font-weight: 800;"></h1>
+        <p id="modalMedDosage" style="color: #64748b; font-size: 1.1rem; margin-bottom: 35px; font-weight: 500;"></p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button id="btnTaken" class="btn" style="background: #10b981; color: white; font-size: 1.1rem; padding: 14px; font-weight: 600; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
+                ✅ Taken
+            </button>
+            <div style="display: flex; gap: 12px; margin-top: 5px;">
+                <button id="btnSnooze1" class="btn" style="flex: 1; background: #f59e0b; color: white; font-size: 1rem; padding: 12px; font-weight: 600; border-radius: 12px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);">
+                    ⏳ Snooze
+                </button>
+                <button id="btnSnooze3" class="btn" style="flex: 1; background: #3b82f6; color: white; font-size: 1rem; padding: 12px; font-weight: 600; border-radius: 12px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);">
+                    ⏰ Delay
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard">
+    <div class="header-section" style="margin-bottom: 40px; text-align: left; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px;">
+        <h2 style="font-size: 2rem; color: #1e293b; font-weight: 700; margin-bottom: 8px;">Welcome back! 👋</h2>
+        <p class="time-display" style="color: #64748b; font-size: 1.1rem; margin: 0;">Current Time: <strong id="liveTime" style="color: #3b82f6;">{{ current_time }}:00</strong> &nbsp;|&nbsp; Today: <strong>{{ today }}</strong></p>
+    </div>
+
+    {% if not due_medicines %}
+    <div style="background: #ecfdf5; border-left: 5px solid #10b981; padding: 20px 25px; border-radius: 16px; margin-bottom: 35px; display: flex; align-items: center; gap: 15px; color: #065f46; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+        <span style="font-size: 1.8rem;">✨</span>
+        <div>
+            <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700;">You're all caught up!</h4>
+            <p style="margin: 3px 0 0; font-size: 0.95rem; opacity: 0.9;">No medicines are due at this moment. Have a great day!</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px;">
+        
+        <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.25); color: white; display: flex; align-items: center; justify-content: space-between; transition: transform 0.3s ease;">
+            <div>
+                <p style="margin: 0; font-size: 1rem; opacity: 0.9; font-weight: 500;">Total Medicines</p>
+                <h3 style="margin: 5px 0 0; font-size: 2.8rem; font-weight: 800; line-height: 1;">{{ stats.total }}</h3>
+            </div>
+            <div style="font-size: 3.5rem; opacity: 0.2;">💊</div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.25); color: white; display: flex; align-items: center; justify-content: space-between; transition: transform 0.3s ease;">
+            <div>
+                <p style="margin: 0; font-size: 1rem; opacity: 0.9; font-weight: 500;">Taken Today</p>
+                <h3 style="margin: 5px 0 0; font-size: 2.8rem; font-weight: 800; line-height: 1;">{{ stats.taken }}</h3>
+            </div>
+            <div style="font-size: 3.5rem; opacity: 0.2;">✅</div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.25); color: white; display: flex; align-items: center; justify-content: space-between; transition: transform 0.3s ease;">
+            <div>
+                <p style="margin: 0; font-size: 1rem; opacity: 0.9; font-weight: 500;">Pending</p>
+                <h3 style="margin: 5px 0 0; font-size: 2.8rem; font-weight: 800; line-height: 1;">{{ stats.pending }}</h3>
+            </div>
+            <div style="font-size: 3.5rem; opacity: 0.2;">⏳</div>
+        </div>
+
+    </div>
+
+    <div style="background: white; border-radius: 24px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); margin-bottom: 40px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h3 style="margin: 0; color: #1e293b; font-size: 1.5rem; font-weight: 700;">📅 Today's Schedule</h3>
+        </div>
+        
+        {% if medicines %}
+        <div style="overflow-x: auto;">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Medicine</th>
+                        <th>Dosage</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for med in medicines %}
+                    <tr>
+                        <td style="font-weight: 600; color: #475569;">{{ med.time }}</td>
+                        <td style="font-weight: 700; color: #0f172a; font-size: 1.1rem;">{{ med.name }}</td>
+                        <td style="color: #64748b;">{{ med.dosage }}</td>
+                        <td>
+                            {% if med.taken %}
+                                <span class="badge badge-success">✓ Taken</span>
+                            {% else %}
+                                <span class="badge badge-pending">⏳ Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not med.taken %}
+                            <a href="{{ url_for('mark_taken', id=med.id) }}" class="btn" style="display: inline-block; background: #e0e7ff; color: #4f46e5; padding: 8px 16px; border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Take Now</a>
+                            {% else %}
+                            <span style="color: #cbd5e1; font-size: 0.9rem;">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px 20px;">
+            <span style="font-size: 3rem; opacity: 0.5;">📭</span>
+            <p style="color: #64748b; font-size: 1.1rem; margin-top: 15px;">No medicines scheduled for today. <br> <a href="{{ url_for('add_medicine') }}" style="color: #4f46e5; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 10px;">+ Add your first medicine</a></p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // --- LIVE CLOCK LOGIC ---
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        
+        const timeElement = document.getElementById('liveTime');
+        if (timeElement) {
+            timeElement.innerText = `${hours}:${minutes}:${seconds}`;
+        }
+    }
+    // Update immediately, then every 1 second
+    updateClock();
+    setInterval(updateClock, 1000);
+    // ------------------------
+
+    const alarmSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    alarmSound.loop = true; 
+    let soundEnabled = false;
+
+    // Fix Problem 1: Check if app was already started in this session
+    if (sessionStorage.getItem('appStarted') === 'true') {
+        document.getElementById('startOverlay').style.display = 'none';
+        soundEnabled = true;
+    }
+
+    // Splash Screen Click Event
+    document.getElementById('startAppBtn').addEventListener('click', function() {
+        alarmSound.play().then(() => {
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+            soundEnabled = true;
+            sessionStorage.setItem('appStarted', 'true'); // Save state
+            document.getElementById('startOverlay').style.display = 'none';
+        }).catch(e => {
+            console.log("Audio unlock failed: ", e);
+            document.getElementById('startOverlay').style.display = 'none';
+        });
+    });
+
+    // Snooze Logic Setup
+    let snoozeMap = JSON.parse(sessionStorage.getItem('snoozeMap')) || {};
+    let isModalOpen = false;
+
+    // Polling logic
+    setInterval(function() {
+        if (isModalOpen) return; // If the modal is open, stop background check
+
+        fetch('/api/check_reminders')
+            .then(response => response.json())
+            .then(data => {
+                if (data.due_medicines.length > 0) {
+                    
+                    let activeMedicine = null;
+                    let currentTimeMs = Date.now();
+
+                    // Find a medicine that is NOT snoozed (or snooze time is over)
+                    for (let med of data.due_medicines) {
+                        let snoozedUntil = snoozeMap[med.id];
+                        if (!snoozedUntil || currentTimeMs >= snoozedUntil) {
+                            activeMedicine = med;
+                            break;
+                        }
+                    }
+
+                    if (activeMedicine) {
+                        isModalOpen = true;
+                        
+                        // Show Modal
+                        document.getElementById('reminderModal').style.display = 'flex';
+                        document.getElementById('modalMedName').innerText = activeMedicine.name;
+                        document.getElementById('modalMedDosage').innerText = "Dosage: " + activeMedicine.dosage;
+
+                        if (soundEnabled) {
+                            alarmSound.play().catch(e => console.log("Audio blocked"));
+                        }
+
+                        // Browser notification logic
+                        if (Notification.permission === "granted") {
+                            new Notification("Medicine Reminder", {
+                                body: `Time to take ${activeMedicine.name} - ${activeMedicine.dosage}`,
+                                icon: "💊"
+                            });
+                        }
+
+                        // BUTTON 1: TAKEN
+                        document.getElementById('btnTaken').onclick = function() {
+                            alarmSound.pause();
+                            window.location.href = '/mark_taken/' + activeMedicine.id;
+                        };
+
+                        // BUTTON 2: 1 MIN SNOOZE
+                        document.getElementById('btnSnooze1').onclick = function() {
+                            alarmSound.pause();
+                            document.getElementById('reminderModal').style.display = 'none';
+                            snoozeMap[activeMedicine.id] = Date.now() + 60000; // 1 Min (60000 ms)
+                            sessionStorage.setItem('snoozeMap', JSON.stringify(snoozeMap));
+                            isModalOpen = false;
+                        };
+
+                        // BUTTON 3: 3 MIN SNOOZE
+                        document.getElementById('btnSnooze3').onclick = function() {
+                            alarmSound.pause();
+                            document.getElementById('reminderModal').style.display = 'none';
+                            snoozeMap[activeMedicine.id] = Date.now() + 180000; // 3 Mins (180000 ms)
+                            sessionStorage.setItem('snoozeMap', JSON.stringify(snoozeMap));
+                            isModalOpen = false;
+                        };
+                    }
+                }
+            });
+    }, 10000); // Polling every 10 seconds for faster demo purposes (change to 60000 for actual 1 min)
+
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+</script>
+{% endblock %}
