@@ -18,4 +18,4 @@ Medi Saathi is an intelligent web application designed to help users track their
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/YourUsername/Medi-Saathi.git](https://github.com/YourUsername/Medi-Saathi.git)
+   git clone (https://github.com/ideepu16/Medi-Saathi.git)
