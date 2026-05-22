@@ -17,5 +17,5 @@ Medi Saathi is an intelligent web application designed to help users track their
 ## 🚀 How to Run Locally
 
 1. **Clone the repository:**
-   ```bash
+   ```bash 
    git clone (https://github.com/ideepu16/Medi-Saathi.git)
